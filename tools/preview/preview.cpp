@@ -7,6 +7,7 @@
 #include <string.h>
 #include <initializer_list>
 #include "docks.h"
+#include "ui.h"
 #include "render.h"
 #include "gfx.h"
 #include "EPD_Init.h" // EPD_W/EPD_H/USE_HORIZONTIAL
@@ -60,12 +61,30 @@ static bool testAddBatt() {
   return ok;
 }
 
+// ui.h: the dial wraps, Back goes to the first screen, Menu toggles status.
+static bool testUi() {
+  UiState s{0, 4, false};
+  bool ok = check(uiHandle(s, UK_UP) == UA_REDRAW && s.screen == 3, "up wraps to last");
+  ok &= check(uiHandle(s, UK_DOWN) == UA_REDRAW && s.screen == 0, "down wraps to first");
+  uiHandle(s, UK_DOWN);
+  uiHandle(s, UK_DOWN);
+  ok &= check(s.screen == 2, "down twice");
+  ok &= check(uiHandle(s, UK_MENU) == UA_REDRAW && s.status, "menu shows status");
+  ok &= check(uiHandle(s, UK_DOWN) == UA_REDRAW && !s.status && s.screen == 2, "dial leaves status, same screen");
+  ok &= check(uiHandle(s, UK_BACK) == UA_REDRAW && s.screen == 0, "back to first screen");
+  ok &= check(uiHandle(s, UK_BACK) == UA_NONE, "back on first screen does nothing");
+  ok &= check(uiHandle(s, UK_OK) == UA_FETCH, "press fetches");
+  UiState one{0, 1, false};
+  ok &= check(uiHandle(one, UK_DOWN) == UA_NONE && one.screen == 0, "one screen: dial does nothing");
+  return ok;
+}
+
 int main() {
-  if (!testAddBatt()) return 1;
+  if (!testAddBatt() || !testUi()) return 1;
 
   Dock home = dock(42, 7, 3, 21, 33, {87, 64, 31});
   Dock dest = dock(123, 30, 2, 5, 38, {});
-  RenderCtx ctx{8 * 60 + 15, false, false};
+  RenderCtx ctx{8 * 60 + 15, false, false, 0, 2};
 
   renderDocks(home, "WENLOCK RD", dest, "OLD ST", ctx);           save("01_typical");
 
@@ -78,10 +97,10 @@ int main() {
 
   Dock noBatt = home;
   noBatt.hasBatt = false;
-  RenderCtx stale{7 * 60 + 50, true, false};
+  RenderCtx stale{7 * 60 + 50, true, false, 0, 2};
   renderDocks(noBatt, "WENLOCK RD", dest, "OLD ST", stale);       save("04_stale_battery_na");
 
-  RenderCtx busy{7 * 60 + 50, false, true};
+  RenderCtx busy{7 * 60 + 50, false, true, 0, 2};
   renderDocks(home, "WENLOCK RD", dest, "OLD ST", busy);          save("05_updating");
 
   Dock closed = dest;
@@ -89,16 +108,17 @@ int main() {
   Dock one = dock(42, 1, 1, 30, 33, {100});
   Dock oneSpace = dock(123, 36, 0, 1, 38, {});
   renderDocks(one, "WENLOCK RD", closed, "OLD ST", ctx);          save("06_dest_closed");
-  renderDocks(one, "WENLOCK RD", oneSpace, "OLD ST", ctx);        save("07_one_space");
+  RenderCtx second{8 * 60 + 15, false, false, 1, 4};
+  renderDocks(one, "OLD ST", oneSpace, "WENLOCK RD", second);     save("07_screen_2_of_4");
 
   Dock none;
   memset(&none, 0, sizeof none);
-  RenderCtx never{-1, true, false};
+  RenderCtx never{-1, true, false, 0, 2};
   renderDocks(none, "WENLOCK RD", none, "OLD ST", never);         save("08_no_data");
 
   renderMessage("dock display", "connecting...");                 save("09_boot");
 
-  StatusInfo info = {"synced 08:15", "wifi -61 dBm", "next 08:20", "docks 42 / 123", "fw 0.1.0"};
+  StatusInfo info = {"synced 08:15", "wifi -61 dBm", "next 08:20", "screen 1: 42/123", "fw 0.2.0"};
   renderStatus(info);                                             save("10_status");
   return 0;
 }

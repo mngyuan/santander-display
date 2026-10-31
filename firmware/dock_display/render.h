@@ -4,9 +4,11 @@
 #include "docks.h"
 
 struct RenderCtx {
-  int dataMin; // local minutes of the last good fetch, -1 if never
-  bool stale;  // last fetch failed; showing older data
-  bool busy;   // a fetch is under way
+  int dataMin;      // local minutes of the last good fetch, -1 if never
+  bool stale;       // last fetch failed; showing older data
+  bool busy;        // a fetch is under way
+  uint8_t screen;   // which screen this is, for the page dots
+  uint8_t nScreens; // dots are drawn only when there's more than one
 };
 
 // Home dock on top (bikes, e-bikes and their batteries), destination dock

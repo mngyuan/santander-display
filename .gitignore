@@ -9,3 +9,7 @@ firmware/dock_display/spi.h
 firmware/dock_display/spi.cpp
 tools/preview/out/
 tools/preview/build/
+# Generated from docks.json by tools/docks_json.py
+firmware/dock_display/docks_config.h
+tools/designer/build/
+__pycache__/

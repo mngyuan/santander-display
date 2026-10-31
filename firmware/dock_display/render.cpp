@@ -35,8 +35,18 @@ static void battery(int x, int y, int pct) {
   gfxFillRect(x + 2, y + 2, fill, 5);
 }
 
+// One 5x5 square per screen after the label; the current one filled.
+static void pageDots(int x, const RenderCtx &ctx) {
+  if (ctx.nScreens <= 1) return;
+  for (int i = 0; i < ctx.nScreens; i++) {
+    if (i == ctx.screen) gfxFillRect(x + i * 8, 5, 5, 5);
+    else gfxRect(x + i * 8, 5, 5, 5);
+  }
+}
+
 static void header(const char *label, const RenderCtx &ctx) {
   gfxText(MARGIN, 2, label, 12);
+  pageDots(MARGIN + gfxTextWidth(label, 12) + 6, ctx);
   char hm[6];
   fmtHM(ctx.dataMin, hm);
   const char *right = ctx.busy ? "updating" : hm;

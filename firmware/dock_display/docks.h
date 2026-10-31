@@ -4,9 +4,24 @@
 #include <stdint.h>
 #include <string.h>
 
-#define NDOCKS 2         // 0 = home dock (pick up), 1 = destination (drop off)
-#define MAX_BATT 8       // e-bike batteries kept per dock, highest first
+#define MAX_SCREENS 4                // pairs of docks, switched with the dial
+#define MAX_SLOTS (MAX_SCREENS * 2)  // slot = screen * 2 + role
+#define ROLE_HOME 0                  // pick a bike up here
+#define ROLE_DEST 1                  // drop it off here
+#define MAX_BATT 8                   // e-bike batteries kept per dock, highest first
 #define DOCK_NAME_LEN 40
+#define DOCK_LABEL_LEN 16            // on-screen label, ASCII; checked by tools/docks_json.py
+
+// One dock as configured in docks.json (see tools/docks_json.py).
+struct DockRef {
+  int32_t id;         // BikePoints_<id>; 0 = look it up with `query`
+  const char *query;  // TfL search text, used only when id is 0
+  const char *label;  // on-screen name, e.g. "WENLOCK RD"
+};
+
+struct ScreenConfig {
+  DockRef dock[2]; // [ROLE_HOME], [ROLE_DEST]
+};
 
 struct Dock {
   int32_t id;               // TfL "BikePoints_<id>"; the GraphQL stationId is the same number

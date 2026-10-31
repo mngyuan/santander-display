@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dock Display Designer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="bar">
+    <h1>Dock display designer</h1>
+    <div class="seg" role="radiogroup" aria-label="Data">
+      <button type="button" data-mode="sample" aria-pressed="true">Sample data</button>
+      <button type="button" data-mode="live" aria-pressed="false">Live from TfL</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="col device-col" aria-label="Device">
+      <div class="device">
+        <div class="bezel">
+          <canvas id="screen" width="250" height="122" aria-label="E-paper screen"></canvas>
+        </div>
+        <div class="dial" id="dial" title="Scroll here to turn the dial; click the middle to press it">
+          <button type="button" class="dial-up" data-key="up" aria-label="Dial up">&#9650;</button>
+          <button type="button" class="dial-press" data-key="ok" aria-label="Press dial"></button>
+          <button type="button" class="dial-down" data-key="down" aria-label="Dial down">&#9660;</button>
+        </div>
+        <div class="keys">
+          <button type="button" data-key="menu">MENU</button>
+          <button type="button" data-key="back">EXIT</button>
+        </div>
+      </div>
+      <p class="hint">Keys: <kbd>&uarr;</kbd> <kbd>&darr;</kbd> dial, <kbd>Enter</kbd> press, <kbd>M</kbd> menu, <kbd>Esc</kbd> exit. Scroll over the dial to turn it.</p>
+      <p class="error" id="render-error" hidden></p>
+
+      <div class="controls">
+        <label>Sample state
+          <select id="scenario"></select>
+        </label>
+        <label>Zoom
+          <select id="zoom"><option>2</option><option selected>3</option><option>4</option></select>
+        </label>
+        <label class="check"><input type="checkbox" id="tint" checked> E-paper tint</label>
+        <button type="button" id="boot">Boot screen</button>
+      </div>
+
+      <h2>Every state, this screen</h2>
+      <div class="gallery" id="gallery"></div>
+
+      <h2>Device log</h2>
+      <ol class="log" id="log"></ol>
+    </section>
+
+    <section class="col" aria-label="Screens">
+      <h2>Screens <span class="muted">(up to 4; the dial switches between them)</span></h2>
+      <p class="muted" id="docklist-note">Loading TfL's dock list&hellip;</p>
+      <datalist id="docklist"></datalist>
+      <div id="screens"></div>
+      <button type="button" id="add-screen">+ Add screen</button>
+
+      <div class="save">
+        <button type="button" id="save" class="primary">Save to docks.json</button>
+        <button type="button" id="download">Download JSON</button>
+        <label class="file">Import JSON&hellip;<input type="file" id="import" accept="application/json,.json"></label>
+        <button type="button" id="revert">Reload from disk</button>
+      </div>
+      <p id="save-state" class="muted"></p>
+      <ul class="error" id="config-errors" hidden></ul>
+      <details>
+        <summary>Generated docks_config.h</summary>
+        <pre id="header-preview"></pre>
+      </details>
+      <p class="muted small">After saving, flash with <code>./tools/flash.sh /dev/cu.wchusbserial10</code>. It rebuilds the header from docks.json.</p>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

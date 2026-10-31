@@ -286,8 +286,10 @@ bool fetchSupply(const int32_t *ids, Dock *out, int n, char *err, int errLen) {
   // {"data":{"supply":{"stations":[{...},{...}]}}}: skip to the array, then
   // parse one station at a time and keep ours.
   bool ok = false;
-  bool got[NDOCKS] = {};
-  int found = 0, seen = 0;
+  bool got[MAX_SLOTS] = {};
+  int found = 0, seen = 0, want = 0;
+  if (n > MAX_SLOTS) n = MAX_SLOTS;
+  for (int i = 0; i < n; i++) if (ids[i] > 0) want++;
   if (!findText(in, "\"stations\"")) {
     snprintf(err, errLen, "gql no stations");
   } else {
@@ -305,13 +307,13 @@ bool fetchSupply(const int32_t *ids, Dock *out, int n, char *err, int errLen) {
         if (e) { snprintf(err, errLen, "gql json %s", e.c_str()); break; }
         seen++;
         int32_t sid = stationNumber(st);
-        for (int i = 0; i < n && i < NDOCKS; i++) {
+        for (int i = 0; i < n; i++) {
           if (got[i] || ids[i] <= 0 || ids[i] != sid) continue;
           fillFromStation(out[i], st.as<JsonObjectConst>());
           got[i] = true;
           found++;
         }
-        if (found == n) { ok = true; break; } // the rest isn't needed
+        if (found == want) { ok = true; break; } // the rest isn't needed
         c = peekNonSpace(in);
         if (c == ',') { in.read(); continue; }
         if (c == ']') { ok = true; break; }
@@ -321,6 +323,6 @@ bool fetchSupply(const int32_t *ids, Dock *out, int n, char *err, int errLen) {
     }
   }
   http.end();
-  Serial.printf("gql: read %d stations, found %d of %d\n", seen, found, n);
+  Serial.printf("gql: read %d stations, found %d of %d\n", seen, found, want);
   return ok;
 }

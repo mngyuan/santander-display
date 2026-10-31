@@ -1,0 +1,12 @@
+{
+  "screens": [
+    {
+      "home": { "id": 0, "query": "Wenlock Road", "name": "Wenlock Road", "label": "WENLOCK RD" },
+      "dest": { "id": 0, "query": "Old Street Station", "name": "Old Street Station", "label": "OLD ST" }
+    },
+    {
+      "home": { "id": 0, "query": "Old Street Station", "name": "Old Street Station", "label": "OLD ST" },
+      "dest": { "id": 0, "query": "Wenlock Road", "name": "Wenlock Road", "label": "WENLOCK RD" }
+    }
+  ]
+}
