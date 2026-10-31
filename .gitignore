@@ -1,0 +1,11 @@
+firmware/dock_display/config.h
+# Elecrow driver files, fetched by tools/fetch_driver.sh
+firmware/dock_display/EPD.h
+firmware/dock_display/EPD.cpp
+firmware/dock_display/EPD_Init.h
+firmware/dock_display/EPD_Init.cpp
+firmware/dock_display/EPDfont.h
+firmware/dock_display/spi.h
+firmware/dock_display/spi.cpp
+tools/preview/out/
+tools/preview/build/
