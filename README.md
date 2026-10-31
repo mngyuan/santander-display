@@ -185,7 +185,7 @@ clear ghosting.
    Without a port it only compiles. `FQBN=...` overrides the board.
 5. Watch the serial log (115200 baud) on the first boot. A good run looks like:
    ```
-   boot: fw 0.2.0, wake cause 0, screen 1 of 2
+   boot: fw 0.2.1, wake cause 0, screen 1 of 2
    wifi: ok, -60 dBm
    ntp: ok
    dock: 'Wenlock Road' matches BikePoints_<n> "<name>"
@@ -225,6 +225,10 @@ unchanged, because `epd_io.*` and `gfx.*` are copied from it as they were:
   the other one.
 - The frame is mirrored in software on the JD79661 (`EPD_MIRROR_X`). Don't use Elecrow's
   `lut_GC`/`lut_DU` or v1.2 `EPD_ALL_Fill`/`EPD_PartUpdate`.
+- The frame is also inverted as it's sent to the JD79661 (`EPD_INVERT`, from 0.2.1). The
+  drawing code uses 1 = black, and this panel reads 1 as white, so without it the
+  screen came out white on black. If a board shows white on black, set `EPD_INVERT 0`
+  in `epd_io.cpp`.
 - Fonts are 12/16/24/32/48 px tall and half as wide, ASCII only.
 
 ## Layout
@@ -256,11 +260,11 @@ committed. The designer compiles them on your computer for the same reason.
 
 ## Verify on hardware (untested assumptions)
 
-0.1.0 ran on the board. 0.2.0 (screens, `docks.json`, `ui.h`) hasn't been compiled
-for the ESP32 or flashed yet. It passed a syntax check against stub headers, and the
-designer runs its button and drawing code.
+0.2.0 compiles and runs on the board, with live data, but the screen came out
+inverted (white on black). 0.2.1 fixes that and hasn't been flashed yet.
 
-1. **Compile 0.2.0.** Check for API slips against ESP32 core 3.x and ArduinoJson v7.
+1. **Colours (0.2.1).** The screen should be black on white. If it's still inverted,
+   set `EPD_INVERT 0`.
 2. **Scrolling.** Each dial step should switch screens with a partial refresh, and a
    fetch should start 1.5 s after the dial stops on a screen with old numbers. Check the
    dial doesn't skip or double-step; the debounce is 25 ms.

@@ -72,11 +72,22 @@ static bool waitIdle(const char *what, uint32_t timeoutMs) {
   return true;
 }
 
+// ImageBW uses 1 = black (Elecrow's older EPD.cpp, which gfx.cpp draws
+// with), but with the 0x50 = 0xD7 setting above the JD79661 reads 1 as white
+// (Elecrow's v1.2 code clears the panel with 0xFF). Without this the whole
+// screen comes out inverted: white text on black. Both the old and new
+// frames go through here, so partial refreshes stay consistent. Set to 0 if
+// a board shows black on white without it.
+#ifndef EPD_INVERT
+#define EPD_INVERT 1
+#endif
+
 static void sendFrame(uint8_t reg, const uint8_t *frame) {
+  const uint8_t flip = EPD_INVERT ? 0xFF : 0x00;
   EPD_WR_REG(reg);
   for (int r = 0; r < EPD_W; r++) {
     const uint8_t *row = frame + (EPD_MIRROR_X ? (EPD_W - 1 - r) : r) * ROW_BYTES;
-    for (int b = 0; b < ROW_BYTES; b++) EPD_WR_DATA8(row[b]);
+    for (int b = 0; b < ROW_BYTES; b++) EPD_WR_DATA8(row[b] ^ flip);
   }
 }
 

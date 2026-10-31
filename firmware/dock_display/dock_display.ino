@@ -38,7 +38,7 @@
 #include "net.h"
 #include "santander.h"
 
-#define FW_VERSION "0.2.0"
+#define FW_VERSION "0.2.1"
 
 // Added in 0.2.0; defaults here so an older config.h still builds.
 #ifndef SCROLL_SETTLE_MS
