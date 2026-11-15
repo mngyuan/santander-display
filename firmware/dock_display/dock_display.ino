@@ -38,7 +38,11 @@
 #include "net.h"
 #include "santander.h"
 
+#ifdef MOCK_DATA
+#define FW_VERSION "0.2.1-mock"
+#else
 #define FW_VERSION "0.2.1"
+#endif
 
 // Added in 0.2.0; defaults here so an older config.h still builds.
 #ifndef SCROLL_SETTLE_MS
@@ -174,6 +178,42 @@ static bool screenNeedsFetch(int screen) {
 }
 
 // ------------------------------------------------------------------ data
+#ifdef MOCK_DATA
+// Random numbers for every configured dock, no wifi (MOCK=1 tools/flash.sh).
+// The clock starts at Monday 08:15 so the 5-minute active cadence applies.
+static void mockDock(int slot, Dock &d) {
+  memset(&d, 0, sizeof d);
+  d.id = slotIds[slot];
+  strlcpy(d.name, slotRef(slot).label, sizeof d.name);
+  d.hasCounts = true;
+  d.bikes = esp_random() % 13;
+  d.ebikes = esp_random() % 7;
+  d.spaces = esp_random() % 16;
+  d.docks = d.bikes + d.ebikes + d.spaces;
+  d.hasBatt = true;
+  strcpy(d.rangeUnit, "mi");
+  for (int i = 0; i < d.ebikes; i++) {
+    int pct = 10 + esp_random() % 91;
+    addBatt(d, pct, pct * 40 / 100);
+  }
+}
+
+static void refreshData() {
+  if (time(nullptr) < 1700000000) {
+    struct timeval tv = {1794816900, 0}; // 2026-11-16 08:15 GMT
+    settimeofday(&tv, nullptr);
+  }
+  time_t now = time(nullptr);
+  lastTry = lastSync = now;
+  strlcpy(lastErr, "mock data", sizeof lastErr);
+  for (int s = 0; s < NSLOTS; s++) {
+    mockDock(s, cache[s]);
+    countsAt[s] = now;
+    Serial.printf("mock slot %d dock %ld: %d bikes, %d e-bikes, %d spaces\n", s, (long)cache[s].id,
+                  cache[s].bikes, cache[s].ebikes, cache[s].spaces);
+  }
+}
+#else
 // Counts for the shown screen come from TfL. One GraphQL request brings
 // batteries for every screen's docks, plus counts for the other screens, so
 // scrolling to them shows recent numbers without another fetch.
@@ -236,6 +276,7 @@ static void refreshData() {
     strlcpy(lastErr, err[0] ? err : "no counts", sizeof lastErr);
   }
 }
+#endif
 
 // ------------------------------------------------------------------ drawing
 static void fmtClock(time_t ts, const char *prefix, char *out, int len) {
